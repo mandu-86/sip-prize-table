@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Australian Science Prizes</title>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --accent: #6366f1;
+            --border-color: #e2e8f0;
+        }
+
+        .prize-container {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+            max-width: 100%;
+            margin: 20px auto;
+        }
+
+        /* Premium Header Styling */
+        .prize-header {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .prize-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 8px 0;
+        }
+
+        /* Table Customization */
+        table.dataTable {
+            border-collapse: separate !important;
+            border-spacing: 0 8px !important;
+            border: none !important;
+        }
+
+        table.dataTable thead th {
+            background: #f1f5f9 !important;
+            color: #64748b !important;
+            font-weight: 600 !important;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 12px 16px !important;
+            border: none !important;
+        }
+
+        table.dataTable tbody tr {
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        table.dataTable tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+            background: #fff !important;
+        }
+
+        table.dataTable tbody td {
+            padding: 16px !important;
+            border: none !important;
+            vertical-align: middle !important;
+        }
+
+        /* Category Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .cat-gov { background: #dbeafe; color: #1e40af; }
+        .cat-uni { background: #dcfce7; color: #166534; }
+        .cat-academy { background: #fef9c3; color: #854d0e; }
+        .cat-soc { background: #f3e8ff; color: #6b21a8; }
+        .cat-corp { background: #fee2e2; color: #991b1b; }
+
+        .badge-major {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-left: 6px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Deadline Tags */
+        .deadline-tag {
+            font-weight: 600;
+            color: #334155;
+            display: block;
+        }
+
+        .status-tag {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        /* URL Buttons */
+        .btn-apply {
+            background: var(--primary-gradient);
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-block;
+            transition: opacity 0.2s;
+        }
+
+        .btn-apply:hover {
+            opacity: 0.9;
+        }
+
+        /* Loader */
+        #loader {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Customizing Search Bar */
+        .dataTables_filter input {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            margin-left: 12px !important;
+            background: white !important;
+            outline: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="prize-container">
+    <div class="prize-header">
+        <h2>Australian Science Prizes</h2>
+        <p style="color: #64748b;">A centralized directory of research funding, scholarships, and academic honors.</p>
+    </div>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Fetching latest prize data...</p>
+    </div>
+
+    <table id="prizesTable" class="display responsive nowrap" style="width:100%; display:none;">
+        <thead>
+            <tr>
+                <th>Organization</th>
+                <th>Category</th>
+                <th>Prize Name</th>
+                <th>Deadline</th>
+                <th>Apply</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+    const CSV_URL = 'https://raw.githubusercontent.com/mandu-86/sip-prize-table/main/australian_science_prizes_expanded.csv';
+
+    $(document).ready(function() {
+        Papa.parse(CSV_URL, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                renderTable(results.data);
+            }
+        });
+    });
+
+    function getCategoryClass(cat) {
+        if (cat.includes('Government')) return 'cat-gov';
+        if (cat.includes('University')) return 'cat-uni';
+        if (cat.includes('Academy')) return 'cat-academy';
+        if (cat.includes('Society')) return 'cat-soc';
+        if (cat.includes('Corporate')) return 'cat-corp';
+        return '';
+    }
+
+    function renderTable(data) {
+        const body = $('#tableBody');
+        data.forEach(row => {
+            if (!row['Prize Name']) return;
+
+            const html = `
+                <tr>
+                    <td>
+                        <div style="font-weight:600; color:#1e293b;">${row['Body/Organization']}</div>
+                    </td>
+                    <td>
+                        <span class="badge ${getCategoryClass(row['Category'])}">${row['Category']}</span>
+                        ${row['Secondary Category'] === 'Major Prize' ? '<span class="badge-major">Major Prize</span>' : ''}
+                    </td>
+                    <td>
+                        <div style="font-weight:600; color:#4338ca;">${row['Prize Name']}</div>
+                        <div style="font-size:0.75rem; color:#64748b; white-space: normal; max-width: 300px;">
+                            ${row['Subcategories'].replace(/;/g, ', ')}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="deadline-tag">${row['Deadline']}</span>
+                        <span class="status-tag">${row['Status']}</span>
+                    </td>
+                    <td>
+                        <a href="${row['Application URL'] || row['Info URL']}" target="_blank" class="btn-apply">View Details</a>
+                    </td>
+                </tr>
+            `;
+            body.append(html);
+        });
+
+        $('#loader').hide();
+        $('#prizesTable').show();
+        
+        $('#prizesTable').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[3, 'asc']], // Sort by deadline initially
+            language: {
+                search: "Filter Prizes:",
+                lengthMenu: "Show _MENU_ entries",
+            },
+            dom: '<"top"f>rt<"bottom"lp><"clear">'
+        });
+    }
+</script>
+
+</body>
+</html>

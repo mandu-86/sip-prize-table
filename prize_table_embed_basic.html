@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Prize Directory</title>
+    
+    <!-- DataTables CSS (Minimal) -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
+    <!-- Professional Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sip-blue: #2563eb;
+            --sip-dark: #1e293b;
+            --sip-gray: #64748b;
+            --sip-border: #cbd5e1;
+            --sip-bg: #ffffff;
+        }
+
+        .sip-prize-directory {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--sip-dark);
+            line-height: 1.5;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: var(--sip-bg);
+        }
+
+        .sip-header {
+            border-bottom: 2px solid var(--sip-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .sip-header h2 {
+            font-size: 1.75rem;
+            margin: 0;
+            color: var(--sip-dark);
+        }
+
+        /* Table Styling - Clean & Journalistic */
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            border: 1px solid var(--sip-border) !important;
+        }
+
+        table.dataTable thead th {
+            background-color: #f8fafc !important;
+            color: var(--sip-dark) !important;
+            text-align: left !important;
+            padding: 12px !important;
+            border-bottom: 2px solid var(--sip-border) !important;
+            font-weight: 600 !important;
+        }
+
+        table.dataTable tbody td {
+            padding: 12px !important;
+            border-bottom: 1px solid var(--sip-border) !important;
+            vertical-align: top !important;
+            white-space: normal !important;
+        }
+
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #fcfdfe !important;
+        }
+
+        /* Search Bar Styling */
+        .dataTables_filter {
+            margin-bottom: 15px !important;
+            float: left !important;
+        }
+
+        .dataTables_filter input {
+            border: 1px solid var(--sip-border) !important;
+            padding: 6px 12px !important;
+            margin-left: 8px !important;
+            width: 300px !important;
+        }
+        .cat-corp { background: #fee2e2; color: #991b1b; }
+
+        /* Major Prize Styling */
+        .badge-major {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Info Styling */
+        .org-name { font-weight: 600; color: var(--sip-dark); }
+        .prize-name { font-weight: 600; color: var(--sip-blue); font-size: 1.05rem; }
+        .prize-sub { font-size: 0.85rem; color: var(--sip-gray); margin-top: 4px; }
+        .deadline-text { font-weight: 600; }
+        .status-text { font-size: 0.8rem; color: var(--sip-gray); text-transform: uppercase; }
+
+        /* Button Styling */
+        .sip-btn {
+            display: inline-block;
+            background-color: var(--sip-blue);
+            color: #ffffff !important;
+            padding: 6px 12px;
+            text-decoration: none !important;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .sip-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Loader */
+        #sip-loader { text-align: center; padding: 40px; color: var(--sip-gray); }
+    </style>
+</head>
+<body>
+
+<div class="sip-prize-directory">
+    <div class="sip-header">
+        <h2>Science Prize & Funding Directory</h2>
+    </div>
+
+    <div id="sip-loader">Loading prize data...</div>
+
+    <table id="sipPrizes" class="display responsive" style="width:100%; display:none;">
+        <thead>
+            <tr>
+                <th>Organization</th>
+                <th>Prize & Subcategories</th>
+                <th>Deadline</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="sipBody"></tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+    const DATA_URL = 'https://raw.githubusercontent.com/mandu-86/sip-prize-table/main/australian_science_prizes_expanded.csv';
+
+    $(document).ready(function() {
+        Papa.parse(DATA_URL, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                const data = results.data;
+                const body = $('#sipBody');
+
+                data.forEach(row => {
+                    if (!row['Prize Name']) return;
+                    
+                    const html = `
+                        <tr>
+                            <td>
+                                <div class="org-name">${row['Body/Organization']}</div>
+                                <div style="font-size:0.75rem; color:#64748b;">
+                                    ${row['Category']}
+                                    ${row['Secondary Category'] === 'Major Prize' ? '<span class="badge-major">Major Prize</span>' : ''}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="prize-name">${row['Prize Name']}</div>
+                                <div class="prize-sub">${row['Subcategories'].replace(/;/g, ', ')}</div>
+                            </td>
+                            <td>
+                                <div class="deadline-text">${row['Deadline']}</div>
+                                <div class="status-text">${row['Status']}</div>
+                            </td>
+                            <td>
+                                <a href="${row['Application URL'] || row['Info URL']}" target="_blank" class="sip-btn">View Link</a>
+                            </td>
+                        </tr>
+                    `;
+                    body.append(html);
+                });
+
+                $('#sip-loader').hide();
+                $('#sipPrizes').show();
+                $('#sipPrizes').DataTable({
+                    responsive: true,
+                    pageLength: 20,
+                    order: [[2, 'asc']],
+                    language: {
+                        search: "Search Prizes:",
+                        lengthMenu: "Show _MENU_ entries"
+                    },
+                    dom: 'f rtip'
+                });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
